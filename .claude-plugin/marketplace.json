@@ -1,0 +1,14 @@
+{
+  "name": "hoiekim",
+  "owner": {
+    "name": "hoiekim"
+  },
+  "description": "Claude Code plugins for the hoiekim repositories.",
+  "plugins": [
+    {
+      "name": "reviewoie-loop",
+      "source": "./plugins/reviewoie-loop",
+      "description": "When PR auto-fix is turned on for a hoiekim/* pull request, drive it through review by reviewoie: request, wait, address findings, re-request until approved."
+    }
+  ]
+}

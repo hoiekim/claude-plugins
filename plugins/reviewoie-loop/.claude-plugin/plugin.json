@@ -1,0 +1,8 @@
+{
+  "name": "reviewoie-loop",
+  "version": "0.1.0",
+  "description": "When PR auto-fix is turned on for a hoiekim/* pull request, drive it through review by reviewoie: request, wait, address findings, re-request until approved.",
+  "author": {
+    "name": "hoiekim"
+  }
+}
