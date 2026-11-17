@@ -37,6 +37,8 @@ where the auto-fix session runs, which for both ways is a cloud session.
    again.
 5. Hand the PR back to the user when a finding returns after two fixes, or
    after 6 reviews without an approval.
+6. Don't request a review from `hoiekim` until `reviewoie` has approved the
+   PR's head commit, unless the user asks for it in that session.
 
 The session's own auto-fix rules still win where they forbid something
 (approving, merging, pushing to a PR it didn't open).

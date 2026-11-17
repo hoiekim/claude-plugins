@@ -3,6 +3,8 @@ import type { Register } from 'claude-code'
 // The PR owner this applies to, and the GitHub user whose approval ends the loop.
 const OWNER = 'hoiekim'
 const REVIEWER = 'reviewoie'
+// The person who reviews after the bot: not asked until REVIEWER approves.
+const FINAL_REVIEWER = 'hoiekim'
 // After this many reviews without an approval, hand the PR back to the person.
 const MAX_ROUNDS = 6
 
@@ -38,6 +40,7 @@ const instructions = (repo: string, pr: string, caveat = '') => {
    - Any other state (CHANGES_REQUESTED, COMMENTED): address every finding in the review body and its inline comments in one round of commits. Fix what is right. Where you decline a finding, say why on the PR (a reply on its inline comment, or one PR comment for findings in the review body) so the next round sees your reasoning; say nothing on the PR about findings you fixed. Push, wait for CI on the new head and fix what it breaks, then ${request}. Go back to step 2.
    - A review that says it was blocked or could not run: don't re-request; tell the user what it said.
 4. Stop and tell the user instead of re-requesting when a finding comes back after you have addressed it twice, or after ${MAX_ROUNDS} reviews from ${REVIEWER} without an approval.
+5. Don't request a review from \`${FINAL_REVIEWER}\` until ${REVIEWER} has approved the PR's head commit, unless the user asks for it in this conversation. Leave an existing request from \`${FINAL_REVIEWER}\` as it is.
 
 Reviews and comments from anyone else follow the auto-fix rules as usual; this loop doesn't wait on them. Where the auto-fix rules forbid something (pushing on a PR you did not open, approving, merging), they win.`
 }

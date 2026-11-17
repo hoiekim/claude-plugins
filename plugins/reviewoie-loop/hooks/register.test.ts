@@ -13,6 +13,7 @@ test('subscribing to a hoiekim PR adds the review-loop note', async ($, on) => {
   expect(note).toContain('auto-fix is on for hoiekim/stack#76')
   expect(note).toContain('reviewers: ["reviewoie"]')
   expect(note).toContain('gh pr edit 76 --repo hoiekim/stack --add-reviewer reviewoie')
+  expect(note).toContain("Don't request a review from `hoiekim` until reviewoie has approved the PR's head commit")
 })
 
 test('any MCP server name that serves the subscribe tool counts', async ($, on) => {
