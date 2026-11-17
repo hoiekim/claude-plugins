@@ -5,22 +5,25 @@ Turns PR auto-fix on a `hoiekim/*` pull request into a review loop with
 
 ## When it fires
 
-Auto-fix turns on in one of two ways, and the plugin catches both for a PR
-whose owner is `hoiekim` (any repository):
+Auto-fix turns on in several ways, and the plugin catches each for a PR whose
+owner is `hoiekim` (any repository):
 
-- **In a cloud session**, Claude calls its `subscribe_pr_activity` tool (you
-  asked it to watch or auto-fix the PR). When that call succeeds, the plugin
-  appends a note to the tool's result.
-- **From a local session**, `/autofix-pr` starts a new cloud session for the
-  PR and subscribes it without a tool call. Its first message begins
-  "You're monitoring PR #N in hoiekim/<repo>."; the plugin attaches the note
-  to that message. (If you give `/autofix-pr` a prompt of your own, that
-  sentence isn't there and the plugin stays out of it.)
+- **The auto-fix toggle in the Claude app** subscribes the PR on the server.
+  The session learns of it from a `subscription.created` event, read through
+  its notifications tool or delivered as a turn of its own; the plugin
+  attaches the note there. Every other way below sends this event too.
+- **Asking a cloud session to watch or auto-fix a PR** makes Claude call its
+  `subscribe_pr_activity` tool; the plugin appends the note to that call's
+  result.
+- **`/autofix-pr` from a local session** starts a new cloud session whose first
+  message begins "You're monitoring PR #N in hoiekim/<repo>."; the plugin
+  attaches the note to that message.
 
-The model reads the note and the user doesn't see it. Nothing happens for
-other owners or for a failed subscription, and the same sentence relayed
-from GitHub or another session is ignored. The plugin has to be installed
-where the auto-fix session runs, which for both ways is a cloud session.
+A PR gets the note once per half hour however many of these arrive. The model
+reads the note and the user doesn't see it. Nothing happens for other owners
+or for a failed subscription, and the same text quoted by GitHub comments or
+another session is ignored. The plugin has to be installed where the auto-fix
+session runs, which is always a cloud session.
 
 ## What the note tells the session
 
