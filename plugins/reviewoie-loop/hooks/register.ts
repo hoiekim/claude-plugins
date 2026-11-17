@@ -6,20 +6,27 @@ const REVIEWER = 'reviewoie'
 // After this many reviews without an approval, hand the PR back to the person.
 const MAX_ROUNDS = 6
 
-// "Auto-fix" in a Claude Code session is the PR-activity subscription tool,
-// served by whichever MCP server the host names (claude-code-remote in cloud
-// sessions), so match the tool by its suffix.
+// Auto-fix turns on one of two ways, and both are matched:
+// - In a cloud session the model calls the PR-activity subscription tool,
+//   served by whichever MCP server the host names (claude-code-remote in
+//   cloud sessions), so the tool is matched by its suffix.
+// - `/autofix-pr` in a local session starts a new cloud session with this
+//   first message (unless given a prompt of its own) and subscribes it
+//   server-side, so that session never calls the tool.
 const SUBSCRIBE = /^mcp__.+__subscribe_pr_activity$/
 const OWNER_ARG = new RegExp(`^${OWNER}$`, 'i')
+const AUTOFIX_PROMPT = new RegExp(`You're monitoring PR #(\\d+) in ${OWNER}/([\\w.-]+)\\.`, 'i')
+// Text relayed from GitHub or written by another session can quote that sentence.
+const RELAYED = ['peer', 'peer-send-message', 'task-notification']
 
 // The tool's arguments are model-written; keep only what a repo or number can be.
 const slug = (value: unknown) => String(value ?? '').replace(/[^\w.-]/g, '')
 
-const instructions = (repo: string, pr: string) => {
+const instructions = (repo: string, pr: string, caveat = '') => {
   const ref = `${OWNER}/${repo}#${pr}`
   const request = `request a review from \`${REVIEWER}\`: the GitHub \`update_pull_request\` tool with \`reviewers: ["${REVIEWER}"]\`, or \`gh pr edit ${pr} --repo ${OWNER}/${repo} --add-reviewer ${REVIEWER}\` where you have \`gh\`. Requesting again after ${REVIEWER} has reviewed re-requests it`
 
-  return `reviewoie-loop: auto-fix is on for ${ref}. On top of the auto-fix rules, drive this PR through review by GitHub user \`${REVIEWER}\` (an automated code reviewer) until it approves. If the result above says another Claude agent is already watching this PR, this session gets no events for it: do none of this.
+  return `reviewoie-loop: auto-fix is on for ${ref}. On top of the auto-fix rules, drive this PR through review by GitHub user \`${REVIEWER}\` (an automated code reviewer) until it approves.${caveat}
 
 1. Check where review stands first, since this note comes again whenever the PR is re-subscribed: read the PR's reviews and its requested reviewers.
    - ${REVIEWER}'s latest review is APPROVED and its commit is the PR's head: the loop is done; do nothing more.
@@ -46,6 +53,15 @@ export const register: Register = on => {
     const pr = slug(args.pullNumber)
     if (!repo || !pr) return ran
 
-    return { ...ran, context: [...(ran.context ?? []), instructions(repo, pr)] }
+    const caveat = ' If the result above says another Claude agent is already watching this PR, this session gets no events for it: do none of this.'
+    return { ...ran, context: [...(ran.context ?? []), instructions(repo, pr, caveat)] }
+  }).catch(($, e, next) => next(e))
+
+  on('prompt.submit', { text: AUTOFIX_PROMPT }, ($, e, next) => {
+    const [, pr, repo] = AUTOFIX_PROMPT.exec(e.text) ?? []
+    if (!pr || !repo || e.command || RELAYED.includes(e.origin?.kind)) return next(e)
+
+    const note = instructions(slug(repo), pr)
+    return next({ ...e, context: [...(e.context ?? []), note] })
   }).catch(($, e, next) => next(e))
 }

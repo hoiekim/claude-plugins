@@ -5,11 +5,22 @@ Turns PR auto-fix on a `hoiekim/*` pull request into a review loop with
 
 ## When it fires
 
-A Claude Code session turns on auto-fix for a PR by calling its
-`subscribe_pr_activity` tool. When that call succeeds for a PR whose owner is
-`hoiekim` (any repository), this plugin appends a note to the tool's result
-that the model reads and the user doesn't see. Nothing happens for other
-owners, for a failed subscription, or in a session without that tool.
+Auto-fix turns on in one of two ways, and the plugin catches both for a PR
+whose owner is `hoiekim` (any repository):
+
+- **In a cloud session**, Claude calls its `subscribe_pr_activity` tool (you
+  asked it to watch or auto-fix the PR). When that call succeeds, the plugin
+  appends a note to the tool's result.
+- **From a local session**, `/autofix-pr` starts a new cloud session for the
+  PR and subscribes it without a tool call. Its first message begins
+  "You're monitoring PR #N in hoiekim/<repo>."; the plugin attaches the note
+  to that message. (If you give `/autofix-pr` a prompt of your own, that
+  sentence isn't there and the plugin stays out of it.)
+
+The model reads the note and the user doesn't see it. Nothing happens for
+other owners or for a failed subscription, and the same sentence relayed
+from GitHub or another session is ignored. The plugin has to be installed
+where the auto-fix session runs, which for both ways is a cloud session.
 
 ## What the note tells the session
 
