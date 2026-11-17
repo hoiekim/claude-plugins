@@ -45,3 +45,9 @@ The session's own auto-fix rules still win where they forbid something
 
 The owner, the reviewer and the round cap are constants at the top of
 `hooks/register.ts`. Run the tests with `claude plugin test plugins/reviewoie-loop`.
+
+`plugin.json` has no `version` on purpose: Claude Code then versions the
+plugin by the commit that last changed its folder, so every push to `main`
+is an update, with nothing to bump. Installs pick it up on their own where
+the `hoiekim` marketplace has auto-update on; new cloud sessions install
+whatever `main` holds when their container is built.
